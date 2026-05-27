@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id             Int       @id @default(autoincrement())
+  questionNumber String?
+  name           String
+  url            String
+  difficulty     Difficulty
+  stage          Stage      @default(ONE)
+  lastReviewDate DateTime?
+  nextReviewDate DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Stage {
+  ONE
+  TWO
+  THREE
+  FOUR
+  MASTERED
+}
