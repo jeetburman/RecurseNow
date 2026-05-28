@@ -1,112 +1,150 @@
 "use client";
+import { useState } from "react";
 import { Question, STAGE_LABELS, STAGE_INTERVALS, Stage } from "@/types";
 import { formatDate, isOverdue, isDueToday } from "@/lib/utils";
-import { ExternalLink, Trash2, ChevronRight } from "lucide-react";
+import { ExternalLink, Trash2, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
   question: Question;
   onStageUpdate: (id: number, stage: Stage) => void;
   onDelete: (id: number) => void;
+  onEdit: (question: Question) => void;
 }
 
-const DIFFICULTY_COLORS = {
-  EASY: "var(--easy)",
-  MEDIUM: "var(--medium)",
-  HARD: "var(--hard)",
+const DIFFICULTY_STYLES = {
+  EASY:   { color: "var(--easy)",   bg: "rgba(77,255,210,0.08)",   border: "rgba(77,255,210,0.2)"   },
+  MEDIUM: { color: "var(--medium)", bg: "rgba(255,209,102,0.08)",  border: "rgba(255,209,102,0.2)"  },
+  HARD:   { color: "var(--hard)",   bg: "rgba(255,107,138,0.08)",  border: "rgba(255,107,138,0.2)"  },
 };
 
 const STAGES: Stage[] = ["ONE", "TWO", "THREE", "FOUR", "MASTERED"];
 
-export default function QuestionCard({ question, onStageUpdate, onDelete }: Props) {
-  const overdue = isOverdue(question.nextReviewDate);
+export default function QuestionCard({ question, onStageUpdate, onDelete, onEdit }: Props) {
+  const [hovering, setHovering] = useState(false);
+  const overdue  = isOverdue(question.nextReviewDate) && question.stage !== "MASTERED";
   const dueToday = isDueToday(question.nextReviewDate);
+  const ds = DIFFICULTY_STYLES[question.difficulty];
 
   return (
     <div
-      className={cn(
-        "group p-4 rounded-xl border bg-[var(--surface)] transition-all duration-200 hover:bg-[var(--surface-2)]",
-        overdue && question.stage !== "MASTERED"
-          ? "border-[var(--accent-2)] glow-red"
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      className="glass rounded-2xl p-5 transition-all duration-300 fade-up"
+      style={{
+        borderColor: overdue
+          ? "rgba(255,107,138,0.35)"
           : dueToday
-          ? "border-[var(--accent)] glow-accent"
-          : "border-[var(--border)]"
-      )}
+          ? "rgba(108,138,255,0.35)"
+          : undefined,
+        boxShadow: overdue
+          ? "0 0 24px rgba(255,107,138,0.08)"
+          : dueToday
+          ? "0 0 24px rgba(108,138,255,0.08)"
+          : undefined,
+      }}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      {/* Top row */}
+      <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          {/* Badges */}
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             {question.questionNumber && (
-              <span className="mono text-xs text-[var(--text-muted)]">
+              <span className="mono text-xs px-2 py-0.5 rounded-md"
+                style={{ color: "var(--text-3)", background: "rgba(255,255,255,0.04)", border: "1px solid var(--glass-border)" }}>
                 #{question.questionNumber}
               </span>
             )}
             <span
-              className="text-xs font-bold uppercase tracking-wider"
-              style={{ color: DIFFICULTY_COLORS[question.difficulty] }}
+              className="text-xs font-semibold px-2.5 py-0.5 rounded-md"
+              style={{ color: ds.color, background: ds.bg, border: `1px solid ${ds.border}` }}
             >
               {question.difficulty}
             </span>
-            {overdue && question.stage !== "MASTERED" && (
-              <span className="text-xs bg-[var(--accent-2)] text-black font-bold px-2 py-0.5 rounded-full">
+            {overdue && (
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-md"
+                style={{ color: "var(--rose)", background: "rgba(255,107,138,0.1)", border: "1px solid rgba(255,107,138,0.3)" }}>
                 OVERDUE
               </span>
             )}
-            {dueToday && (
-              <span className="text-xs bg-[var(--accent)] text-black font-bold px-2 py-0.5 rounded-full">
-                TODAY
+            {dueToday && !overdue && (
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-md"
+                style={{ color: "var(--accent)", background: "rgba(108,138,255,0.1)", border: "1px solid rgba(108,138,255,0.3)" }}>
+                DUE TODAY
               </span>
             )}
           </div>
-          <h3 className="font-semibold text-[var(--text)] truncate">{question.name}</h3>
+          <h3 className="font-semibold text-base" style={{ color: "var(--text)" }}>
+            {question.name}
+          </h3>
         </div>
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+
+        {/* Action buttons */}
+        <div
+          className="flex items-center gap-1.5 transition-all duration-200 shrink-0"
+          style={{ opacity: hovering ? 1 : 0 }}
+        >
           
-            href={question.url}
+          <a  href={question.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
-          <a>
-            <ExternalLink size={14} />
+            className="p-2 rounded-xl transition-all duration-150"
+            style={{ background: "rgba(255,255,255,0.05)", color: "var(--text-2)" }}
+          >
+            <ExternalLink size={13} />
           </a>
           <button
-            onClick={() => onDelete(question.id)}
-            className="p-1.5 rounded-lg hover:bg-[var(--accent-2)] hover:bg-opacity-20 text-[var(--text-muted)] hover:text-[var(--accent-2)] transition-colors"
+            onClick={() => onEdit(question)}
+            className="p-2 rounded-xl transition-all duration-150"
+            style={{ background: "rgba(255,255,255,0.05)", color: "var(--text-2)" }}
           >
-            <Trash2 size={14} />
+            <Pencil size={13} />
+          </button>
+          <button
+            onClick={() => onDelete(question.id)}
+            className="p-2 rounded-xl transition-all duration-150"
+            style={{ background: "rgba(255,107,138,0.08)", color: "var(--rose)" }}
+          >
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
 
       {/* Dates */}
-      <div className="flex items-center gap-4 mb-4 text-xs text-[var(--text-muted)] mono">
-        <span>Last: {formatDate(question.lastReviewDate)}</span>
-        <span>Next: {formatDate(question.nextReviewDate)}</span>
+      <div className="flex items-center gap-5 mb-4 mono text-xs" style={{ color: "var(--text-3)" }}>
+        <span>Last reviewed: <span style={{ color: "var(--text-2)" }}>{formatDate(question.lastReviewDate)}</span></span>
+        <span>Next: <span style={{ color: overdue ? "var(--rose)" : dueToday ? "var(--accent)" : "var(--text-2)" }}>{formatDate(question.nextReviewDate)}</span></span>
       </div>
 
-      {/* Stage Selector */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-xs text-[var(--text-muted)] mr-1">Stage:</span>
-        {STAGES.map((s) => (
-          <button
-            key={s}
-            onClick={() => onStageUpdate(question.id, s)}
-            className={cn(
-              "text-xs px-2.5 py-1 rounded-lg border transition-all duration-150 font-medium",
-              question.stage === s
-                ? s === "MASTERED"
-                  ? "border-[var(--accent-3)] bg-[var(--accent-3)] bg-opacity-20 text-[var(--accent-3)]"
-                  : "border-[var(--accent)] bg-[var(--accent)] bg-opacity-20 text-[var(--accent)]"
-                : "border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]"
-            )}
-          >
-            {s === "MASTERED" ? "✓ Mastered" : STAGE_LABELS[s]}
-            {s !== "MASTERED" && (
-              <span className="ml-1 opacity-60">{STAGE_INTERVALS[s]}</span>
-            )}
-          </button>
-        ))}
+      {/* Stage selector */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {STAGES.map((s) => {
+          const isActive = question.stage === s;
+          const isMastered = s === "MASTERED";
+          return (
+            <button
+              key={s}
+              onClick={() => onStageUpdate(question.id, s)}
+              className="text-xs font-medium px-3 py-1.5 rounded-xl transition-all duration-150"
+              style={{
+                background: isActive
+                  ? isMastered ? "rgba(77,255,210,0.12)" : "rgba(108,138,255,0.12)"
+                  : "rgba(255,255,255,0.03)",
+                border: isActive
+                  ? isMastered ? "1px solid rgba(77,255,210,0.4)" : "1px solid rgba(108,138,255,0.4)"
+                  : "1px solid rgba(255,255,255,0.06)",
+                color: isActive
+                  ? isMastered ? "var(--cyan)" : "var(--accent)"
+                  : "var(--text-3)",
+              }}
+            >
+              {isMastered ? "✓ Mastered" : `${STAGE_LABELS[s]}`}
+              {!isMastered && (
+                <span className="ml-1.5 opacity-50">{STAGE_INTERVALS[s]}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

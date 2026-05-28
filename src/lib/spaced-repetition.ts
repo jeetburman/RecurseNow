@@ -30,13 +30,11 @@ export function getStageLabel(stage: Stage): string {
 
 export function getNextStage(stage: Stage): Stage {
   const progression: Record<Stage, Stage> = {
-    ONE: TWO,
-    TWO: THREE,
-    THREE: FOUR,
-    FOUR: MASTERED,
-    MASTERED: MASTERED,
+    ONE: Stage.TWO,
+    TWO: Stage.THREE,
+    THREE: Stage.FOUR,
+    FOUR: Stage.MASTERED,
+    MASTERED: Stage.MASTERED,
   };
   return progression[stage];
 }
-
-const { TWO, THREE, FOUR, MASTERED } = Stage;
