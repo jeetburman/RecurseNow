@@ -20,15 +20,26 @@ export default function Home() {
   const [loading, setLoading]           = useState(true);
 
   const fetchStats = useCallback(async () => {
-    const res = await fetch("/api/stats");
-    setStats(await res.json());
+    try {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      if (data && typeof data.total === "number") setStats(data);
+    } catch {
+      // stats stay null, UI handles it
+    }
   }, []);
 
   const fetchQuestions = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch(`/api/questions?filter=${filter}`);
-    setQuestions(await res.json());
-    setLoading(false);
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/questions?filter=${filter}`);
+        const data = await res.json();
+        setQuestions(Array.isArray(data) ? data : []);
+      } catch {
+        setQuestions([]);
+      } finally {
+        setLoading(false);
+      }
   }, [filter]);
 
   useEffect(() => { fetchQuestions(); fetchStats(); }, [fetchQuestions, fetchStats]);

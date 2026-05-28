@@ -7,7 +7,7 @@ import { Stage, Difficulty } from "@prisma/client";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const filter = searchParams.get("filter"); // "today", "backlog", "all"
+    const filter = searchParams.get("filter");
 
     const now = new Date();
     now.setHours(23, 59, 59, 999);
@@ -30,10 +30,20 @@ export async function GET(req: NextRequest) {
       where = { stage: Stage.MASTERED };
     }
 
-    const questions = await prisma.question.findMany({
-      where,
-      orderBy: { nextReviewDate: "asc" },
-    });
+    // Retry once — Neon free tier suspends and needs a warm-up request
+    let questions;
+    try {
+      questions = await prisma.question.findMany({
+        where,
+        orderBy: { nextReviewDate: "asc" },
+      });
+    } catch {
+      await new Promise((r) => setTimeout(r, 2000));
+      questions = await prisma.question.findMany({
+        where,
+        orderBy: { nextReviewDate: "asc" },
+      });
+    }
 
     return NextResponse.json(questions);
   } catch (error) {
