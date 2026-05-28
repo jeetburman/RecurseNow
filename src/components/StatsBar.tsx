@@ -1,6 +1,5 @@
 "use client";
 import { Stats } from "@/types";
-import { cn } from "@/lib/utils";
 
 interface Props {
   stats: Stats | null;
@@ -9,85 +8,41 @@ interface Props {
 }
 
 const CARDS = [
-  {
-    filter: "today",
-    label: "Due Today",
-    key: "dueToday" as keyof Stats,
-    color: "var(--accent)",
-    glow: "rgba(108,138,255,0.2)",
-    activeBorder: "rgba(108,138,255,0.5)",
-    icon: "◈",
-  },
-  {
-    filter: "backlog",
-    label: "Backlog",
-    key: "backlog" as keyof Stats,
-    color: "var(--rose)",
-    glow: "rgba(255,107,138,0.2)",
-    activeBorder: "rgba(255,107,138,0.5)",
-    icon: "◉",
-  },
-  {
-    filter: "all",
-    label: "Active",
-    key: "total" as keyof Stats,
-    color: "var(--text)",
-    glow: "rgba(255,255,255,0.1)",
-    activeBorder: "rgba(255,255,255,0.3)",
-    icon: "◎",
-  },
-  {
-    filter: "mastered",
-    label: "Mastered",
-    key: "mastered" as keyof Stats,
-    color: "var(--cyan)",
-    glow: "rgba(77,255,210,0.2)",
-    activeBorder: "rgba(77,255,210,0.5)",
-    icon: "◆",
-  },
-];
+  { filter: "today",   label: "Due Today", key: "dueToday" as keyof Stats, color: "var(--accent)",  dim: "var(--accent-dim)"  },
+  { filter: "backlog", label: "Backlog",   key: "backlog"  as keyof Stats, color: "var(--rose)",    dim: "var(--rose-dim)"    },
+  { filter: "all",     label: "Active",    key: "total"    as keyof Stats, color: "var(--text)",    dim: "rgba(255,255,255,0.04)" },
+  { filter: "mastered",label: "Mastered",  key: "mastered" as keyof Stats, color: "var(--cyan)",    dim: "var(--cyan-dim)"    },
+] as const;
 
 export default function StatsBar({ stats, activeFilter, onFilterChange }: Props) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-      {CARDS.map((card, i) => {
-        const value = typeof stats?.[card.key] === "number" ? stats[card.key] : 0;
-        const isActive = activeFilter === card.filter;
-
+    <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: "1rem", marginBottom: "2rem" }}>
+      {CARDS.map((c) => {
+        const val = typeof stats?.[c.key] === "number" ? (stats[c.key] as number) : 0;
+        const active = activeFilter === c.filter;
         return (
           <button
-            key={card.filter}
-            onClick={() => onFilterChange(card.filter)}
-            className="glass rounded-2xl p-5 text-left transition-all duration-300 group"
+            key={c.filter}
+            onClick={() => onFilterChange(c.filter)}
+            className="text-left transition-all duration-150"
             style={{
-              animationDelay: `${i * 60}ms`,
-              borderColor: isActive ? card.activeBorder : undefined,
-              boxShadow: isActive ? `0 0 30px ${card.glow}, inset 0 1px 0 rgba(255,255,255,0.06)` : "inset 0 1px 0 rgba(255,255,255,0.04)",
+              padding: "1.25rem",
+              borderRadius: "var(--radius-lg)",
+              background: active ? c.dim : "var(--surface)",
+              border: `1px solid ${active ? c.color + "55" : "var(--border)"}`,
             }}
           >
-            <div className="flex items-start justify-between mb-3">
-              <span
-                className="text-lg opacity-60 group-hover:opacity-100 transition-opacity"
-                style={{ color: card.color }}
-              >
-                {card.icon}
-              </span>
-              {isActive && (
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: card.color, boxShadow: `0 0 6px ${card.color}` }}
-                />
-              )}
+            <div
+              className="mono text-3xl font-semibold tabular-nums"
+              style={{ color: c.color, marginBottom: "0.25rem" }}
+            >
+              {val}
             </div>
             <div
-              className="mono text-4xl font-bold mb-1 tabular-nums"
-              style={{ color: card.color }}
+              className="text-xs font-medium uppercase tracking-widest"
+              style={{ color: "var(--text-3)" }}
             >
-              {String(value).padStart(2, "0")}
-            </div>
-            <div className="text-xs font-medium uppercase tracking-[0.12em]"
-              style={{ color: "var(--text-3)" }}>
-              {card.label}
+              {c.label}
             </div>
           </button>
         );

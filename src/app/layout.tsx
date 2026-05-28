@@ -3,14 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "RecurseNow",
-  description: "Spaced repetition for DSA problems",
+  description: "Spaced repetition tracker for DSA problems",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>
