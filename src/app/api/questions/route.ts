@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getNextReviewDate } from "@/lib/spaced-repetition";
 import { Stage, Difficulty } from "@prisma/client";
+export const dynamic = "force-dynamic";
 
 // GET /api/questions - fetch all questions
 export async function GET(req: NextRequest) {
